@@ -1,0 +1,216 @@
+---
+title: "The Mindalab R Challenge"
+author: "Paul Minda"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    highlight: tango
+    theme: flatly
+    toc: yes
+    toc_depth: '3'
+    toc_float: yes
+---
+#Summary
+The **The Mindalab R Challenge**is part of an effort to help increase skills in data analysis, data visualization, and R coding in our lab. It began in the summer of 2018 when I sent an excel spreadsheet to my 5 graduate students with a brief description of what it was and how we might break down the data, organize things, visualize the data, and run basic statistics tests. Every few weeks, we work on a new problem and add it to the notebook and then we compare and discuss the solutions in a lab meeting. 
+
+The end goal is that each of my graduate students should have their **own personal R notebook** that they can add to as a repository for their own code chunks, functions, and solutions to common problems. Knowing where to find your own quick scripts is very helpful.
+
+The full R Notebook and data files can be found on [GitHub](https://github.com/jpminda/R_Examples), if you want to get the code and the data and try. Soon, all of my students will upload to their own GitHub, but since I literally just learned how to do use GitHub and GitHub pages this week, it may take a few weeks to get the rest of the lab together on this. It will be the *MindaLab GitHub challenge*.
+
+This is all pretty fundamental R work for cognitive psych studies, and could be a useful tutorial to go from data to results in a short script. 
+
+##Background
+The data we are using was collected in our lab over a number of years. The task itself was a classification learning task in which subjects learned to classify exemplars that were separated into two categories by a verbalizable rule (Rule Based or RB) or two categories that were not separated by a verbalizable rule (II for Information Integration). See my [lab page](http://mindalab.com) for details about this technique. We also collected surveys that asked about subjects' behavioural habits and we recorded things like the time of year and time of day that the experiment was run. This is all the the data file.
+
+To be honest, it does not matter too much for the purpose of this notebook. I'm just using this as a data set that is typical of what we use in my lab and as a way to learn how to unpack a large semi-structured Excel spreadsheet and turned it into usable, reproducible data. 
+
+##Challenge 1 (June 26)
+The first R challenge was just to read in the data, create a data-frame with *Total* as the DV (this is the total proportion correct on the task) and *Category* (II/RB), *Month* when they were tested. From this data frame, we should be able to obtain the summary stats broken down by independent variables, along with good data visualizations. We actually did several different ones, but I'm just describing the one version here. (if you want to look at this yourself, ignore everything else but those columns for now)
+
+##Challenge 2 (July 12)
+The second challenge was to include an additional visualization that you did not use before and then do basic a test (ANOVA) for the Category X Month breakdown. The goal was to practice going from data to visualization to test and to formatted table.
+
+##Challenge 3 (July 19)
+Check back soon for the results of Challenge 3
+
+
+#Initial steps
+##Libraries
+The first step is to load the necessary libraries. When I create a notebook that's going to be a standalone script of reproducible code, I put all the libraries at one place in the top and include a line (commented) to install the package, that way another user can run the code easily and install any packages. Just uncomment these if they are not already installed
+
+**Note:** There are some redundant packages here, as we're practicing and learning more than one way to do some things.
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# install.packages('ggplot2')
+# install.packages('readxl') 
+# install.packages('ez') 
+# install.packages('apaTables') 
+# install.packages('RColorBrewer') 
+# install.packages('schoRsch') 
+# install.packages('Rmisc') 
+
+library(ggplot2) #for plotting
+library(readxl) #reading in excel docs  
+library(ez) #for easyANOVAs and other stats
+library(apaTables) #formats ezANOVAs in APA style
+library(RColorBrewer) #for cool colour options
+library(schoRsch) #another package that formats ANOVAs in apa style
+library(Rmisc) #quick summarization
+library(knitr)#for markdown options
+```
+
+##Data Files
+The second step is to load in the data file into a data frame. The simplest way is to read in a pure text file, my preferred method is to use the **readxl**  package to import the data file directly from Excel. Most of our data comes via an excel spreadsheet. The messier the better, because we want to learn how to quickly extract what we need from a large file.
+
+```{r}
+FullData <- read_excel("ModifiedFullData.xlsx")
+```
+
+We now have a data frame named "FullData", but suppose we can't use all of it? 
+
+For example, I want to drop some data that was collected in the month of May, because I know that it was incomplete and part of a different study. Normally, you would not let this happen, but we're including this as a way to learn about creating a subset, which is a very old, core R function that should probably be avoided, but I use anyway. The following code takes FullData and keeps everything but the cells when Month is not equal to May (coded as Month!="05_May").
+
+```{r}
+dm<-subset(FullData,Month!="05_May")
+```
+
+
+#R Challenge 1 - Summary and Data Viz
+
+The first R challenge was about reading in the data, visualizing it, and creating a table of means. In this case, were going to be looking at the column of data that corresponds to total performance and averaging across category set. So the first analysis is an examination of total (**Total**) performance by **Month**. 
+
+##Category Set By Month Table method 1
+A basic way to do this is to create a list of factors that I want to average across, in this case it is a **list** of Category ("Cat" coded as "RD" or "II") and Month. I used the **aggregate** function from core R to create a table of means, a table of standard deviations, number of observations, and I calculated the standard error. I glued these together into a overall data frame called **means**. I can then call the means data frame to see all of the numbers.  I should probably format this better, but for now it gives me everything I need. Not very elegant but it works.
+
+```{r}
+f<-list(dm$Cat,dm$Month) #create a list of the factors you want to group by
+means<-aggregate(dm$Total, f, FUN="mean") #aggreagte by those factors to get the mean
+sd<-aggregate(dm$Total, f, FUN="sd") #aggreagte by those factors to get the standard dev
+n<-aggregate(dm$Total, f, FUN="length")#aggreagte to get the lenthg (or number of obs)
+SE<-sd$x/sqrt(n$x) #formula for Standard error of Mean
+colnames(means)<-c("Cat", "Month", "Mean") #create some names for the columns
+means$sd<-sd$x #this appends the sd to the "means: data fram
+means$n<-n$x
+means$SE<-SE
+means #this is a nice, clean table with all the means you need
+```
+
+###Using Summary SE
+Probably easier to use the **summarySE** function. This function is part of the **Rmisc** library and is well suited for generating quick tables when the data are properly structured in long format. This allows you to get all the basic stats you will need to discuss your data in print, create a table of means, and to make a nice bar plot later.
+
+I also use the **kable** function which is part of the **knitr** library to make the table look nice in the formatted notebook (html or PDF). It will appear just as text in the notebook script itself. If you want to round, just specify the number of digits as "digit=3" for example.
+
+This table breaks the data into **category** and **month** as above, but by using the SummarySE function, I can do it all in one line.
+```{r}
+dtM<-summarySE(data = dm, measurevar="Total", groupvars = c("Cat","Month"),
+    na.rm = FALSE, conf.interval = 0.95, .drop = TRUE)
+kable(dtM, digits=3)#simple way to round
+```
+
+This table is the same, but just gets me the means by Category, not by Month. I might need to know that also. No harm...
+
+```{r}
+dt<-summarySE(data = dm, measurevar="Total", groupvars = c("Cat"),
+    na.rm = FALSE, conf.interval = 0.95, .drop = TRUE)
+kable(dt, digits=3)
+```
+
+
+##Category Set By Month BoxPlot
+Means tables are great and tell you much of what you need to know, but of course you want to visualize things. This is where **ggplot2** comes in. It makes it really easy to plot and visualize the data in different ways using a consistent syntax.
+
+The box plot is pretty straightforward, I use the data frame that I created with the subset, and plot performance by month. Honestly, the first time I did this in ggplot2 I was floored. It takes essentially 6 lines of code to load in libraries, read in the file, and plot the data in a pleasing and informative way. Notice that I didn't even have to use a summary table, the box plot does all of that for you.
+
+```{r}
+ggplot(dm,aes(x=Month, y=Total, fill=Cat))+
+  geom_boxplot() +
+  ggtitle("Performance by Month") #Title for my plot
+```
+The general trend, clearly evident in the data, is an effect of category set on performance. Participants perform much better on the RD categories relative to the II categories. Also evident in the data, is some variability by month. A visual inspection of the data reveals several outliers, but no clear interaction between category set and month.
+
+###Modifications
+I like to add a bit to that plot, though. For example, I prefer to use **RColourBrewer** to create different colour palettes. This one is called "paired"", and the more observations you have the more shades of blue it gives you. I also like the classic theme over the default ggplot2, though I use the default often too.
+
+```{r}
+ggplot(dm,aes(x=Month, y=Total, fill=Cat))+
+  geom_boxplot() +
+  ggtitle("Performance by Month") +
+  scale_fill_discrete(name = "Category")+
+  scale_fill_brewer(palette="Paired")+
+  theme_classic()
+```
+
+
+##Category Set By Month Bar Plot
+
+The box plot above is a very good visualization of the overall data, but doesn't always work if you want to do hypothesis-testing with t-tests or ANOVAs later. After all, those are typically tests of means. So I'm going to create a bar plot, which a lot of data scientists hate, but 48 year old cognitive psychologists are pretty OK with. This is where the aggregate data frame that I created above comes in handy. It's much easier to build the bar plot from a table of means. You can do it directly in ggplot with a stat function, but it's never been clear to me how to make sure that the means and error bars work exactly the right way. 
+
+The point it, you're doing a table anyway because you need means in text form, just go ahead and do that, and then just use ggplot2 to plot those means as **stat = "identity"** (the actual value) and the error bars. Easy.
+
+
+```{r}
+ggplot(dtM,aes(x=Month, y=Total, fill=Cat))+
+  geom_bar(position = "dodge",color="black", stat="identity")+
+  geom_errorbar(aes(ymin = Total-se, ymax = Total+se), width = 0.2,
+                position =position_dodge(.9))+
+  ggtitle("Performance by Month") +
+  scale_fill_discrete(name = "Category")+
+  scale_fill_brewer(palette="Paired")+
+  theme_classic()
+```
+
+
+#R Challenge 2 - ANOVA
+The main part of the second challenge was to do some hypothesis-testing. Let's test the means for **Total** as DV with **Category** and **Month** as the IV factors. 
+Just use the EZ package for now, though aov is OK here too (We'll find out why and why not)
+
+
+##ANOVA on Total with Cat and Month
+To set up a **between subjects** ANOVA using ez, specify the data file, the DV, the error term (wid) and the factors. This goes into a variable of named what ever you want, I used "ThisA" for no reason in particular. We are using type 3 Sum of Squares to align with SPSS. No one really knows why we need to use SPSS as the standard, but we do. 
+
+```{r message=FALSE, warning=FALSE}
+ThisA<-ezANOVA(dm, #the data file
+       dv=.(Total), #DV
+       wid=.(UniqueSubjNum), #subject as within ID means subject is the error term 
+       between=.(Cat,Month), #Cat and Month as IVs
+       detailed=TRUE,
+       return_aov = FALSE,
+       type=3)
+```
+
+The ANOVA can be displayed in a few ways, the first is the simplest. Just create a table using kable for the ANOVA portion of the object (ThisA) that you put the ANOVA into. ezANOVA gives you the ANOVA and the Levine's test and each one can be accessed separately.
+
+###Results of ANOVA
+This will give you the all the numbers you need, including F, dfs, effect size, and p value. If you use **kable** you will get text in the console and notebook, but a nicely formatted table in HTML or PDF. 
+
+
+```{r}
+kable(ThisA$ANOVA, digits = 4)
+```
+
+###Results of Levine's test
+You can also look at the Levine's test in the same way.
+
+```{r}
+kable(ThisA$`Levene's Test for Homogeneity of Variance`,digits = 4)
+```
+
+###Other ways to format
+
+There are at least two other nice packages that format things in APA style. One uses the apatables package. It's good for more than just ANOVA. Caveat is that it can't be "kabled". But you can always just enjoy seeing that the numbers are the same.
+
+```{r}
+apa.ezANOVA.table(ThisA)
+```
+
+Here's another way, a bit more information in the second one. This uses the really nice "schoRsch" package. Again using the same object ("ThisA") that we created all the way back with ezANOVA. I like this because the second table it gives you can be copied and past into a paper or handout, it's formatted perfectly for that: F(1,442) = 16340.93, p < .001, np2 = .97. You can technically use kable with this, but it's not pretty.
+
+I recommend using this this for basic data analysis, and if you need a nice kable version, just call use kable(ThisA$ANOVA, digits = 4).
+
+```{r}
+anova_out(ThisA, print = TRUE, sph.cor = "no", mau.p = 0.05,
+          etasq = "partial", dfsep = ", ")
+```
+
+#Challenge 3 
+We just started this. Check back in a few week and see the solution.
