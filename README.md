@@ -1,2 +1,3 @@
-# R_Examples
-Examples of R code that we use in my lab
+# Challenge
+
+These are the files associated with the "R Challenge" that is described on my GitHub page in more detail
