@@ -11,7 +11,7 @@ output:
     toc_float: yes
 ---
 #Summary
-The **The Mindalab R Challenge**is part of an effort to help increase skills in data analysis, data visualization, and R coding in our lab. It began in the summer of 2018 when I sent an excel spreadsheet to my 5 graduate students with a brief description of what it was and how we might break down the data, organize things, visualize the data, and run basic statistics tests. Every few weeks, we work on a new problem and add it to the notebook and then we compare and discuss the solutions in a lab meeting. 
+The **The Mindalab R Challenge** is part of an effort to help increase skills in data analysis, data visualization, and R coding in our lab. It began in the summer of 2018 when I sent an excel spreadsheet to my 5 graduate students with a brief description of what it was and how we might break down the data, organize things, visualize the data, and run basic statistics tests. Every few weeks, we work on a new problem and add it to the notebook and then we compare and discuss the solutions in a lab meeting. 
 
 The end goal is that each of my graduate students should have their **own personal R notebook** that they can add to as a repository for their own code chunks, functions, and solutions to common problems. Knowing where to find your own quick scripts is very helpful.
 
@@ -31,7 +31,8 @@ The first R challenge was just to read in the data, create a data-frame with *To
 The second challenge was to include an additional visualization that you did not use before and then do basic a test (ANOVA) for the Category X Month breakdown. The goal was to practice going from data to visualization to test and to formatted table.
 
 ##Challenge 3 (July 19)
-Check back soon for the results of Challenge 3
+Here's the current challenge, if anyone wants to try. 
+First, create a new data frame that takes the column with performance in each block (AZ-BC, or Block 1-4) and puts them into a single column called PERFORMANCE and then create a new column called “BLOCK” with 1,2,3,4 as values. This new frame will be four times taller, but does not need to include every variables, only the ones we're using. Second, generate a line plot with errorbars (or points) that shows PERFORMANCE with BLOCK as X-Axis and different lines for Category. Decide on the best way to also show MONTH (same plot different line, or separate plots). Third, run a mixed factor ANOVA on PERFORMANCE with BLOCK as within-subjects and CATEGORY and MONTH and between.
 
 
 #Initial steps
@@ -75,7 +76,7 @@ dm<-subset(FullData,Month!="05_May")
 ```
 
 
-#R Challenge 1 - Summary and Data Viz
+#R Challenge 1 -Summary and Visualization
 
 The first R challenge was about reading in the data, visualizing it, and creating a table of means. In this case, were going to be looking at the column of data that corresponds to total performance and averaging across category set. So the first analysis is an examination of total (**Total**) performance by **Month**. 
 
